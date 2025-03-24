@@ -2,7 +2,7 @@ from sqlalchemy import ForeignKey, Integer, String, Float, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 from datetime import datetime
-from flask_app import db
+from environment_app.flask_app import db
 
 
 class Borough(db.Model):
