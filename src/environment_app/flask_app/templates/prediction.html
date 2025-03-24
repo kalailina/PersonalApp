@@ -1,0 +1,102 @@
+{% extends 'layout.html' %}
+
+{% block title %}Predictions{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Predict Future Energy Consumption & Emissions</h1>
+            <p>Use the form below to predict future energy consumption and greenhouse gas emissions based on historical trends.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Prediction Form</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('main.prediction') }}">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            <label for="borough">{{ form.borough.label }}</label>
+                            {{ form.borough(class="form-select") }}
+                            {% if form.borough.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.borough.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="sector">{{ form.sector.label }}</label>
+                            {{ form.sector(class="form-select") }}
+                            {% if form.sector.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.sector.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="year">{{ form.year.label }}</label>
+                            {{ form.year(class="form-control") }}
+                            <div class="form-text text-muted">Enter a year between 2022 and 2050</div>
+                            {% if form.year.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.year.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn btn-primary">Generate Prediction</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            {% if energy_prediction is not none or emission_prediction is not none %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">Prediction Results</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>Prediction Parameters:</h6>
+                        <ul>
+                            <li><strong>Borough:</strong> {{ borough_name }}</li>
+                            <li><strong>Sector:</strong> {{ sector_name }}</li>
+                            <li><strong>Year:</strong> {{ prediction_year }}</li>
+                        </ul>
+                        
+                        {% if energy_prediction is not none %}
+                            <div class="alert alert-info">
+                                <h6>Predicted Energy Consumption:</h6>
+                                <h3>{{ "{:,.2f}".format(energy_prediction) }}</h3>
+                                <p><small>{{ energy_explanation }}</small></p>
+                            </div>
+                        {% endif %}
+                        
+                        {% if emission_prediction is not none %}
+                            <div class="alert alert-warning">
+                                <h6>Predicted GHG Emissions:</h6>
+                                <h3>{{ "{:,.2f}".format(emission_prediction) }}</h3>
+                                <p><small>{{ emission_explanation }}</small></p>
+                            </div>
+                        {% endif %}
+                        
+                        <p class="text-muted">
+                            <small>Note: These predictions are based on historical trends and should be used as estimates only.</small>
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

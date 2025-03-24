@@ -1,0 +1,64 @@
+{% extends 'layout.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="p-5 mb-4 bg-light rounded-3">
+                <div class="container-fluid py-5">
+                    <h1 class="display-5 fw-bold">London Environment Data</h1>
+                    <p class="col-md-8 fs-4">Explore London's environmental data, including energy consumption and greenhouse gas emissions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Interactive Dashboard</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="card-text">View detailed charts and visualizations of London's environmental data.</p>
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-primary">Explore</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">Predictive Analytics</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="card-text">Predict future environmental trends based on historical data patterns.</p>
+                    <a href="{{ url_for('main.prediction') }}" class="btn btn-outline-info">Make Predictions</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Total Energy Consumption ({{ latest_year }})</h5>
+                    <h2 class="card-text">{{ "{:,.2f}".format(total_consumption) }}</h2>
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">View Dashboard</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Total GHG Emissions ({{ latest_year }})</h5>
+                    <h2 class="card-text">{{ "{:,.2f}".format(total_emission) }}</h2>
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">View Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

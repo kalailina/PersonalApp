@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
+        <title>London Environment - {% block title %}{% endblock %}</title>
+    </head>
+    <body>
+        <header>
+            {% include 'navbar.html' %}
+        </header>
+        <div id="content" class="container-fluid">
+            {% block content %}{% endblock %}
+        </div>
+        <!-- Bootstrap JavaScript -->
+        <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+    </body>
+</html>

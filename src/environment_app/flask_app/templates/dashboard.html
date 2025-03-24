@@ -1,0 +1,109 @@
+{% extends 'layout.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Environmental Data Dashboard</h1>
+            <p>Visualize London's energy consumption and greenhouse gas emissions data.</p>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Filter Options</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('main.dashboard') }}" class="row g-3">
+                        <div class="col-md-5">
+                            <label for="borough" class="form-label">Borough:</label>
+                            <select name="borough" id="borough" class="form-select">
+                                <option value="All Boroughs">All Boroughs</option>
+                                {% for borough in boroughs.itertuples() %}
+                                <option value="{{ borough.borough_name }}" {% if selected_borough == borough.borough_name %}selected{% endif %}>
+                                    {{ borough.borough_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label for="year" class="form-label">Year:</label>
+                            <select name="year" id="year" class="form-select">
+                                <option value="">All Years</option>
+                                {% for year in years %}
+                                <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>
+                                    {{ year }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if selected_year %}
+    <!-- Two side-by-side charts for a specific year -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    {{ consumption_chart | safe }}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    {{ emission_chart | safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Line chart for all years -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Energy Consumption & GHG Emissions Trends</h5>
+                </div>
+                <div class="card-body">
+                    {{ consumption_chart | safe }}
+                </div>
+                <div class="card-footer text-muted">
+                    <small>Data shown: {% if selected_borough %}{{ selected_borough }}{% else %}All Boroughs{% endif %} | All Years</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Energy Consumption by Sector</h5>
+                </div>
+                <div class="card-body">
+                    {{ consumption_pie | safe }}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>GHG Emissions by Sector</h5>
+                </div>
+                <div class="card-body">
+                    {{ emission_pie | safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
