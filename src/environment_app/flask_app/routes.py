@@ -1,17 +1,17 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
-from flask_app import db
-from flask_app.models import Borough, Sector, Type, EnergyConsumption, GHGEmission, Feedback
-from flask_app.helpers import (
+from environment_app.flask_app import db  # Use absolute import here
+from environment_app.flask_app.models import Borough, Sector, Type, EnergyConsumption, GHGEmission, Feedback
+from environment_app.flask_app.helpers import (
     get_borough_data, create_combined_chart,
     get_available_years, get_available_boroughs,
     get_sector_breakdown, create_sector_pie_charts,
     create_side_by_side_charts, make_energy_prediction, 
     make_emission_prediction  
 )
-from flask_app.forms import PredictionForm, FeedbackForm
+from environment_app.flask_app.forms import PredictionForm, FeedbackForm
 from datetime import datetime
 
-# (Keep your existing routes)
+# Create Blueprint
 main = Blueprint('main', __name__)
 
 

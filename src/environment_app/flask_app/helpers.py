@@ -1,7 +1,7 @@
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from flask_app import db
+from environment_app.flask_app import db  # Use absolute import here
 from plotly.subplots import make_subplots
 
 
@@ -72,7 +72,7 @@ def create_combined_chart(consumption_df, emission_df, selected_borough=None):
         yaxis='y2'
     ))
     
-    # Set up the layout with two y-axes - corrected version
+    # Set up the layout with two y-axes
     fig.update_layout(
         title=title,
         xaxis=dict(
@@ -255,70 +255,6 @@ def get_available_boroughs():
     query = "SELECT borough_id, borough_name FROM Borough ORDER BY borough_name"
     boroughs_df = pd.read_sql_query(query, db.get_engine())
     return boroughs_df
-
-def make_energy_prediction(borough_id, sector_id, prediction_year):
-    """Make a prediction for future energy consumption
-    
-    If borough_id or sector_id is -1, it indicates 'All' was selected
-    """
-    # Build the base query
-    query = """
-        SELECT year, SUM(consumption) as total_consumption
-        FROM Energy_Consumption
-    """
-    
-    # Add filters based on selections
-    where_clauses = []
-    
-    if borough_id != -1:  # If specific borough selected
-        where_clauses.append(f"borough_id = {borough_id}")
-    
-    if sector_id != -1:  # If specific sector selected
-        where_clauses.append(f"sector_id = {sector_id}")
-    
-    # Add WHERE clause if any filters are applied
-    if where_clauses:
-        query += " WHERE " + " AND ".join(where_clauses)
-    
-    # Group by year to get annual totals
-    query += " GROUP BY year ORDER BY year"
-    
-    # Get historical data
-    historical_data = pd.read_sql_query(query, db.get_engine())
-    
-    if historical_data.empty:
-        return None, "No historical data available for this combination."
-    
-    # Get latest data
-    latest_year = historical_data['year'].max()
-    latest_value = historical_data[historical_data['year'] == latest_year]['total_consumption'].iloc[0]
-    
-    # If only one data point, return that value as prediction
-    if len(historical_data) < 2:
-        return latest_value, f"Prediction based on limited data (only {latest_year} available)"
-    
-    # Calculate average annual change rate
-    historical_data['year_diff'] = historical_data['year'].diff()
-    historical_data['consumption_diff'] = historical_data['total_consumption'].diff()
-    historical_data['annual_change_rate'] = historical_data['consumption_diff'] / historical_data['total_consumption'].shift(1)
-    
-    # Remove NaN values (first row)
-    historical_data = historical_data.dropna()
-    
-    # Calculate average annual change rate
-    avg_annual_change = historical_data['annual_change_rate'].mean()
-    
-    # Simple prediction using compound growth formula
-    years_to_predict = prediction_year - latest_year
-    prediction = latest_value * ((1 + avg_annual_change) ** years_to_predict)
-    
-    # Ensure prediction is not negative
-    prediction = max(0, prediction)
-    
-    explanation = f"Based on historical data from {historical_data['year'].min()} to {latest_year}, " \
-                 f"with an average annual change rate of {avg_annual_change:.2%}"
-    
-    return prediction, explanation
 
 
 def make_energy_prediction(borough_id, sector_id, prediction_year):
