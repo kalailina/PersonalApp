@@ -33,8 +33,8 @@ def get_borough_data(selected_year=None):
     emission_query += " GROUP BY Borough.borough_name, GHG_Emission.year"
     
     # Execute queries
-    consumption_df = pd.read_sql_query(consumption_query, db.get_engine())
-    emission_df = pd.read_sql_query(emission_query, db.get_engine())
+    consumption_df = pd.read_sql_query(consumption_query, db.engine)
+    emission_df = pd.read_sql_query(emission_query, db.engine)
     
     return consumption_df, emission_df
 
@@ -191,8 +191,8 @@ def get_sector_breakdown(selected_year=None, selected_borough=None):
     emission_query += " GROUP BY Sector.sector_name"
     
     # Execute queries
-    consumption_df = pd.read_sql_query(consumption_query, db.get_engine())
-    emission_df = pd.read_sql_query(emission_query, db.get_engine())
+    consumption_df = pd.read_sql_query(consumption_query, db.engine)
+    emission_df = pd.read_sql_query(emission_query, db.engine)
     
     return consumption_df, emission_df
 
@@ -246,14 +246,14 @@ def get_available_years():
         SELECT DISTINCT year FROM GHG_Emission
         ORDER BY year
     """
-    years_df = pd.read_sql_query(query, db.get_engine())
+    years_df = pd.read_sql_query(query, db.engine)
     return years_df['year'].tolist()
 
 
 def get_available_boroughs():
     """Get all available boroughs from the database"""
     query = "SELECT borough_id, borough_name FROM Borough ORDER BY borough_name"
-    boroughs_df = pd.read_sql_query(query, db.get_engine())
+    boroughs_df = pd.read_sql_query(query, db.engine)
     return boroughs_df
 
 
@@ -290,7 +290,7 @@ def make_energy_prediction(borough_id, sector_id, prediction_year):
     print("Energy Query:", query)
     
     # Execute query and get historical data
-    historical_data = pd.read_sql_query(query, db.get_engine())
+    historical_data = pd.read_sql_query(query, db.engine)
     
     if historical_data.empty:
         return None, "No historical data available for this combination."
@@ -360,7 +360,7 @@ def make_emission_prediction(borough_id, sector_id, prediction_year):
     print("Emission Query:", query)
     
     # Execute query and get historical data
-    historical_data = pd.read_sql_query(query, db.get_engine())
+    historical_data = pd.read_sql_query(query, db.engine)
     
     if historical_data.empty:
         return None, "No historical data available for this combination."
@@ -390,7 +390,6 @@ def make_emission_prediction(borough_id, sector_id, prediction_year):
     
     # Ensure prediction is not negative
     prediction = max(0, prediction)
-    
     explanation = f"Based on historical data from {historical_data['year'].min()} to {latest_year}, " \
                  f"with an average annual change rate of {avg_annual_change:.2%}"
     

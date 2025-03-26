@@ -122,14 +122,7 @@ def prediction():
         (s.sector_id, s.sector_name) for s in Sector.query.all()
     ]
     
-    # Set default values if not provided
-    if not form.borough.data:
-        form.borough.data = -1
-    if not form.sector.data:
-        form.sector.data = -1
-    if not form.year.data:
-        form.year.data = 2025
-    
+    # Initialize prediction variables
     energy_prediction = None
     emission_prediction = None
     energy_explanation = None
@@ -137,6 +130,7 @@ def prediction():
     borough_name = "All Boroughs"
     sector_name = "All Sectors"
     
+    # If form is submitted and valid
     if form.validate_on_submit():
         # Get form data
         borough_id = form.borough.data
@@ -170,13 +164,15 @@ def prediction():
         emission_explanation=emission_explanation,
         borough_name=borough_name,
         sector_name=sector_name,
-        prediction_year=form.year.data
+        prediction_year=form.year.data if form.validate() else None
     )
 
 @main.route('/feedback', methods=['GET', 'POST'])
 def feedback():
+    """Feedback submission route"""
     form = FeedbackForm()
     
+    # If form is submitted and valid
     if form.validate_on_submit():
         # Create a new feedback record
         new_feedback = Feedback(
@@ -196,4 +192,5 @@ def feedback():
             db.session.rollback()
             flash(f'Error: {str(e)}', 'danger')
     
+    # If form is not valid, render the form again
     return render_template('feedback.html', form=form)
