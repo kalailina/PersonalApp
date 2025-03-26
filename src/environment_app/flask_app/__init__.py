@@ -1,38 +1,51 @@
 import os
+import sys
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+
+# Explicitly set the absolute path to the database
+DB_PATH = "/Users/linakalai/Desktop/UCL/PersonalApp/src/environment_app/instance/environment.db"
 
 # Create a SQLAlchemy object
 db = SQLAlchemy()
 
 def create_app(test_config=None):
-    app = Flask(__name__, instance_relative_config=True)
+    """Create and configure the Flask application."""
+    # Determine the base directory for the instance folder
+    base_dir = os.path.dirname(os.path.abspath(__file__))
     
-    # Get the absolute path to your existing database
-    project_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-    db_path = os.path.join(project_dir, 'instance', 'environment.db')
+    app = Flask(__name__, 
+                instance_path=os.path.join(base_dir, '..', 'instance'),
+                instance_relative_config=True)
     
+    # Validate database path
+    if not os.path.exists(DB_PATH):
+        raise FileNotFoundError(f"Database file not found at {DB_PATH}")
+    
+    # Configure the app with full absolute path
     app.config.from_mapping(
         SECRET_KEY='dev',
-        SQLALCHEMY_DATABASE_URI="sqlite:///" + db_path,
+        SQLALCHEMY_DATABASE_URI=f"sqlite:///{DB_PATH}",
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
     )
 
+    # If test config is provided, update the configuration
     if test_config is not None:
         app.config.update(test_config)
     else:
+        # Optionally load config from a file if it exists
         app.config.from_pyfile('config.py', silent=True)
 
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
-
+    # Initialize the database
     db.init_app(app)
 
+    # Create application context
     with app.app_context():
-        from environment_app.flask_app import models  
-        from environment_app.flask_app.routes import main
+        # Import models to ensure they are known to SQLAlchemy
+        from . import models
+        
+        # Import routes
+        from .routes import main
         app.register_blueprint(main)
 
     return app

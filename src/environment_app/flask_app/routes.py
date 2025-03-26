@@ -30,13 +30,13 @@ def index():
         db.func.sum(EnergyConsumption.consumption)
     ).filter(
         EnergyConsumption.year == latest_year
-    ).scalar()
+    ).scalar() or 0
     
     total_emission = db.session.query(
         db.func.sum(GHGEmission.emission)
     ).filter(
         GHGEmission.year == latest_year
-    ).scalar()
+    ).scalar() or 0
     
     # Simple render_template call
     return render_template(
@@ -109,20 +109,24 @@ def dashboard():
 @main.route('/prediction', methods=['GET', 'POST'])
 def prediction():
     """Page for predicting future energy consumption and emissions"""
+    # Populate borough and sector choices
     form = PredictionForm()
     
-    # Add "All" options to the dropdown choices with proper handling of sector_id=0
-    form.borough.choices = [(-1, "All Boroughs")] + [(b.borough_id, b.borough_name) for b in Borough.query.all()]
-    form.sector.choices = [(-1, "All Sectors")] + [(s.sector_id, s.sector_name) for s in Sector.query.all()]
+    # Dynamically populate borough choices
+    form.borough.choices = [(-1, "All Boroughs")] + [
+        (b.borough_id, b.borough_name) for b in Borough.query.all()
+    ]
     
-    # Set default values - note the use of 'is None' to avoid issues with 0 values
-    if form.borough.data is None:
-        form.borough.data = -1  # Default to "All Boroughs"
+    # Dynamically populate sector choices
+    form.sector.choices = [(-1, "All Sectors")] + [
+        (s.sector_id, s.sector_name) for s in Sector.query.all()
+    ]
     
-    if form.sector.data is None:
-        form.sector.data = -1  # Default to "All Sectors"
-    
-    # Set default year
+    # Set default values if not provided
+    if not form.borough.data:
+        form.borough.data = -1
+    if not form.sector.data:
+        form.sector.data = -1
     if not form.year.data:
         form.year.data = 2025
     
@@ -139,9 +143,6 @@ def prediction():
         sector_id = form.sector.data
         prediction_year = form.year.data
         
-        # Debug output
-        print(f"Form data - borough_id: {borough_id}, sector_id: {sector_id}, year: {prediction_year}")
-        
         # Get names for display
         if borough_id != -1:
             borough = Borough.query.get(borough_id)
@@ -150,10 +151,6 @@ def prediction():
         if sector_id != -1:
             sector = Sector.query.get(sector_id)
             sector_name = sector.sector_name if sector else "Unknown"
-            
-            # Additional debug for domestic sector
-            if sector_id == 0:
-                print(f"Domestic sector selected, id: {sector_id}, name: {sector_name}")
         
         # Make predictions
         energy_prediction, energy_explanation = make_energy_prediction(
@@ -173,7 +170,7 @@ def prediction():
         emission_explanation=emission_explanation,
         borough_name=borough_name,
         sector_name=sector_name,
-        prediction_year=form.year.data if form.year.data else None
+        prediction_year=form.year.data
     )
 
 @main.route('/feedback', methods=['GET', 'POST'])

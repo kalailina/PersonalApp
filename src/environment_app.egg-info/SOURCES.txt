@@ -1,0 +1,8 @@
+README.md
+pyproject.toml
+src/environment_app/__init__.py
+src/environment_app.egg-info/PKG-INFO
+src/environment_app.egg-info/SOURCES.txt
+src/environment_app.egg-info/dependency_links.txt
+src/environment_app.egg-info/requires.txt
+src/environment_app.egg-info/top_level.txt

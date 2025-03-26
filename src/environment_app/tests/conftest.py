@@ -1,46 +1,66 @@
-"""
-Minimal conftest.py file for testing the Flask app.
-"""
 import os
 import sys
 import pytest
-from flask import Flask
 
-# Add the project root to the path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+# Add the src directory to Python's path to help with imports
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, project_root)
 
-@pytest.fixture
+@pytest.fixture()
 def app():
-    """Create a test Flask application."""
-    # Create a minimal Flask app for testing
-    app = Flask(__name__)
-    app.config.update({
+    """Create a Flask application configured for testing."""
+    # Import the create_app function 
+    from environment_app.flask_app import create_app
+    
+    app = create_app({
         "TESTING": True,
+        "SQLALCHEMY_DATABASE_URI": "sqlite:///test_environment.sqlite",
         "WTF_CSRF_ENABLED": False,
     })
-    
-    # Add routes for testing
-    @app.route('/')
-    def index():
-        return "Home Page"
-    
-    @app.route('/dashboard')
-    def dashboard():
-        return "Dashboard Page"
-    
-    @app.route('/prediction', methods=['GET', 'POST'])
-    def prediction():
-        return "Prediction Page"
-    
-    @app.route('/feedback', methods=['GET', 'POST'])
-    def feedback():
-        return "Feedback Page"
-    
-    return app
 
-@pytest.fixture
+    # Create test database tables
+    with app.app_context():
+        from environment_app.flask_app import db
+        db.create_all()
+
+    yield app
+
+    # Clean up / reset resources
+    with app.app_context():
+        db.drop_all()
+
+@pytest.fixture()
 def client(app):
     """Create a test client for the Flask application."""
     return app.test_client()
+
+@pytest.fixture()
+def runner(app):
+    """Create a CLI test runner for the Flask application."""
+    return app.test_cli_runner()
+
+@pytest.fixture(scope='function', autouse=True)
+def db_session(app):
+    """Creates a new database session for a test."""
+    with app.app_context():
+        from environment_app.flask_app import db
+        connection = db.engine.connect()
+        
+        # Begin a non-ORM transaction
+        transaction = connection.begin()
+        
+        # Create a session bound to the connection
+        from sqlalchemy.orm import Session
+        db_session = Session(bind=connection)
+        
+        # Replace the session in the app context
+        old_session = db.session
+        db.session = db_session
+        
+        yield db_session
+        
+        # Clean up
+        db_session.close()
+        transaction.rollback()
+        connection.close()
+        db.session = old_session
